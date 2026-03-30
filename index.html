@@ -9,62 +9,88 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jsdiff/5.1.0/diff.min.js"></script>
 
     <style>
-        :root { --primary: #1a73e8; --bg: #f8f9fa; --diff-red: #fff0f0; --diff-border: #d93025; }
-        body { font-family: 'Segoe UI', 'PingFang SC', sans-serif; background: var(--bg); margin: 0; padding: 10px; height: 100vh; display: flex; flex-direction: column; box-sizing: border-box; overflow: hidden; }
+        :root { --primary: #1a73e8; --bg: #f8f9fa; --diff-red: #fff0f0; --diff-border: #d93025; --text-main: #3c4043; }
+        body { font-family: 'Segoe UI', 'PingFang SC', sans-serif; background: var(--bg); margin: 0; padding: 10px; height: 100vh; display: flex; flex-direction: column; box-sizing: border-box; overflow: hidden; /* 防止身体滚动引发抖动 */ }
         
-        .app-header { margin-bottom: 8px; text-align: center; }
+        /* 紧凑头部 */
+        .app-header { margin-bottom: 8px; text-align: center; flex-shrink: 0; }
         .app-header h1 { font-size: 24px; color: var(--primary); margin: 0; font-weight: 700; }
         .app-header p { font-size: 13px; color: #70757a; margin: 2px 0; }
 
+        /* 操作栏 */
         .top-nav { 
-            display: grid; grid-template-columns: 1fr 120px 1fr; gap: 10px; 
+            display: grid; grid-template-columns: 1fr 120px 1fr; gap: 10px; flex-shrink: 0;
             background: #fff; padding: 10px; border-radius: 8px; box-shadow: 0 1px 5px rgba(0,0,0,0.05); align-items: center; margin-bottom: 10px;
         }
-        
         .upload-section { display: flex; flex-direction: column; gap: 8px; }
         .upload-zone { border: 2px dashed #dadce0; border-radius: 8px; height: 50px; display: flex; align-items: center; justify-content: center; cursor: pointer; background: #fff; transition: 0.2s; }
-        .upload-zone span { font-size: 16px; color: var(--primary); font-weight: 900; }
-        .upload-zone.drag-over { border: 3px solid var(--primary); background: #e8f0fe; transform: scale(1.02); }
-
-        /* Sheet 选择器样式 */
+        .upload-zone span { font-size: 16px; color: var(--primary); font-weight: 900; pointer-events: none; }
+        .upload-zone.drag-over { border: 3px solid var(--primary); background: #e8f0fe; transform: scale(1.01); }
         .sheet-selector { display: none; padding: 6px; border: 1.5px solid var(--primary); border-radius: 4px; font-size: 12px; font-weight: bold; color: var(--primary); outline: none; background: #fff; }
 
-        .btn-go { background: var(--primary); color: white; border: none; height: 40px; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 14px; }
-        .btn-go:active { transform: scale(0.95); }
+        .btn-go { background: var(--primary); color: white; border: none; height: 40px; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 14px; transition: 0.2s; }
+        .btn-go:active { transform: scale(0.95); opacity: 0.8; }
 
-        .content-container { display: flex; flex: 1; gap: 10px; overflow: hidden; position: relative; }
-        .main-view { display: grid; grid-template-columns: 1fr 1fr; gap: 2px; flex: 1; background: #dee2e6; border-radius: 8px; overflow: hidden; }
-        .pane { background: #fff; overflow: auto; scroll-behavior: smooth; }
-
-        /* 侧边栏及悬浮球 */
-        .diff-sidebar { 
-            width: 280px; background: #fff; border-radius: 8px; display: flex; flex-direction: column; 
-            box-shadow: -2px 0 15px rgba(0,0,0,0.1); transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); 
-            z-index: 100;
-        }
-        .diff-sidebar.hidden { transform: translateX(310px); position: absolute; right: 0; height: 100%; }
-
-        .sidebar-header { padding: 15px; background: #f1f3f4; border-radius: 8px 8px 0 0; display: flex; justify-content: space-between; align-items: center; font-weight: bold; font-size: 13px; }
-        .close-btn { cursor: pointer; font-size: 22px; color: #5f6368; line-height: 1; }
+        /* 主内容区布局 */
+        .content-container { display: flex; flex: 1; gap: 0; overflow: hidden; background: #fff; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); position: relative; }
         
+        /* 预览面板 */
+        .main-view { display: grid; grid-template-columns: 1fr 1fr; gap: 1px; flex: 1; background: #dee2e6; overflow: hidden; transition: flex 0.3s ease; }
+        .pane { background: #fff; overflow: auto; scroll-behavior: smooth; position: relative; /* 确保跳转定位准确 */ }
+        
+        /* 拖拽分割条 */
+        .resizer { width: 6px; background: #dfe1e5; cursor: col-resize; transition: 0.2s; flex-shrink: 0; position: relative; z-index: 10; }
+        .resizer:hover, .resizer.resizing { background: var(--primary); width: 8px; }
+
+        /* 差异侧边栏 */
+        .diff-sidebar { 
+            width: 300px; /* 默认宽度 */ min-width: 200px; max-width: 500px; 
+            background: #fff; border-left: 1px solid #dfe1e5; display: flex; flex-direction: column; 
+            overflow: hidden; transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1); flex-shrink: 0;
+        }
+        
+        /* 核心修复：隐藏模式 */
+        .diff-sidebar.hidden { width: 0 !important; min-width: 0 !important; border-left: none; }
+
+        /* 侧边栏头部 */
+        .sidebar-header { padding: 12px 15px; background: #f8f9fa; border-bottom: 1px solid #dfe1e5; display: flex; justify-content: space-between; align-items: center; flex-shrink: 0; }
+        .sidebar-header h3 { margin: 0; font-size: 14px; color: var(--text-main); font-weight: 600; }
+        .close-btn { cursor: pointer; font-size: 20px; color: #5f6368; line-height: 1; padding: 0 5px; transition: 0.2s; }
+        .close-btn:hover { color: var(--diff-border); background: rgba(0,0,0,0.05); border-radius: 4px; }
+        
+        /* 悬浮展开按钮 */
         .fab-open {
             position: absolute; right: 20px; bottom: 30px; width: 56px; height: 56px; 
             background: var(--primary); color: white; border-radius: 50%; 
             display: none; align-items: center; justify-content: center; 
-            box-shadow: 0 4px 12px rgba(0,0,0,0.2); cursor: pointer; z-index: 90;
-            font-size: 12px; text-align: center; font-weight: bold;
+            box-shadow: 0 4px 12px rgba(26,115,232,0.4); cursor: pointer; z-index: 90;
+            font-size: 12px; text-align: center; font-weight: bold; line-height: 1.2;
         }
+        .fab-open:hover { background: #1557b0; transform: scale(1.05); }
 
-        .sidebar-content { flex: 1; overflow-y: auto; padding: 10px; }
-        .diff-item { padding: 10px; border-radius: 6px; border-left: 4px solid var(--diff-border); background: var(--diff-red); margin-bottom: 8px; font-size: 12px; cursor: pointer; transition: 0.2s; }
+        /* 差异列表 */
+        .sidebar-content { flex: 1; overflow-y: auto; padding: 10px; background: #fff; }
+        .diff-item { 
+            padding: 10px; border-radius: 6px; border-left: 4px solid var(--diff-border); 
+            background: var(--diff-red); margin-bottom: 8px; font-size: 12px; cursor: pointer; 
+            transition: 0.2s; box-shadow: 0 1px 2px rgba(0,0,0,0.03); 
+        }
         .diff-item:hover { background: #ffdada; transform: translateX(-3px); }
+        .diff-item strong { color: var(--diff-border); margin-right: 5px; }
 
+        /* 内容渲染样式 */
         .excel-table { border-collapse: collapse; table-layout: fixed; width: max-content; }
-        .excel-table td, .excel-table th { border: 1px solid #ebebeb; padding: 8px; font-size: 13px; }
-        .diff-cell { background: var(--diff-red) !important; color: var(--diff-border) !important; font-weight: bold; outline: 1.5px solid var(--diff-border); }
-        .text-mode { padding: 35px; line-height: 2.2; white-space: pre-wrap; font-size: 14px; }
-        .page-divider { display: flex; align-items: center; margin: 25px 0 10px 0; color: var(--primary); font-weight: bold; font-size: 12px; }
+        .excel-table thead th { position: sticky; top: 0; background: #f1f3f4; z-index: 5; border-bottom: 1px solid #ccc; padding: 8px; font-size: 12px; }
+        .excel-table tbody th { position: sticky; left: 0; background: #f1f3f4; z-index: 4; width: 45px; text-align: center; border-right: 1px solid #ccc; color: #9aa0a6; }
+        .excel-table td { border: 1px solid #ebebeb; padding: 6px 8px; height: 30px; font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .diff-cell { background: var(--diff-red) !important; color: var(--diff-border) !important; font-weight: bold; outline: 1.5px solid var(--diff-border); position: relative; }
+        
+        /* 文本模式页码 */
+        .text-mode { padding: 35px; line-height: 2.3; white-space: pre-wrap; font-size: 14px; color: var(--text-main); }
+        .page-divider { display: flex; align-items: center; margin: 25px 0 10px 0; color: var(--primary); font-weight: bold; font-size: 12px; flex-shrink: 0; }
+        .page-divider::before, .page-divider::after { content: ""; flex: 1; height: 1px; background: #e8eaed; }
         .page-badge { background: #e8f0fe; padding: 2px 12px; border-radius: 12px; margin: 0 10px; }
+        
         .txt-added { background: #e6ffec; color: #137333; }
         .txt-removed { background: #ffebe9; color: #d93025; text-decoration: line-through; }
     </style>
@@ -90,20 +116,24 @@
     </div>
 </div>
 
-<div class="content-container">
-    <div class="main-view">
+<div class="content-container" id="container">
+    <div class="main-view" id="mainView">
         <div class="pane" id="p1"></div>
         <div class="pane" id="p2"></div>
     </div>
+
+    <div class="resizer" id="resizer"></div>
+
     <div class="diff-sidebar" id="sidebar">
         <div class="sidebar-header">
-            <span id="diffCount">差异清单 (0)</span>
+            <h3 id="diffCount">差异清单 (0)</h3>
             <span class="close-btn" onclick="toggleSidebar(true)">×</span>
         </div>
         <div class="sidebar-content" id="diffList">
             <p style="color:#999; text-align:center; font-size:12px; margin-top:30px;">等待执行核对...</p>
         </div>
     </div>
+    
     <div id="fab" class="fab-open" onclick="toggleSidebar(false)">查看<br>差异</div>
 </div>
 
@@ -111,11 +141,49 @@
     pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.worker.min.js';
     let dataA = { ext: '', wb: null, val: null }, dataB = { ext: '', wb: null, val: null };
 
+    // 1. 核心修复：侧边栏隐藏与再打开逻辑
     function toggleSidebar(hide) {
-        document.getElementById('sidebar').classList.toggle('hidden', hide);
-        document.getElementById('fab').style.display = hide ? 'flex' : 'none';
+        const sidebar = document.getElementById('sidebar');
+        const fab = document.getElementById('fab');
+        const resizer = document.getElementById('resizer');
+        
+        if(hide) {
+            sidebar.classList.add('hidden');
+            resizer.style.display = 'none'; // 隐藏分割条
+            fab.style.display = 'flex'; // 显示悬浮球
+        } else {
+            sidebar.classList.remove('hidden');
+            resizer.style.display = 'block'; // 显示分割条
+            fab.style.display = 'none'; // 隐藏悬浮球
+        }
     }
 
+    // 2. 核心修复：调整宽度逻辑
+    const container = document.getElementById('container');
+    const resizer = document.getElementById('resizer');
+    const sidebar = document.getElementById('sidebar');
+    let isResizing = false;
+
+    resizer.addEventListener('mousedown', (e) => { isResizing = true; resizer.classList.add('resizing'); document.body.style.cursor = 'col-resize'; });
+    document.addEventListener('mousemove', (e) => {
+        if (!isResizing) return;
+        // 计算侧边栏宽度：容器右边缘 - 鼠标 X 坐标
+        const containerRect = container.getBoundingClientRect();
+        let newWidth = containerRect.right - e.clientX;
+        // 限制宽度范围
+        if (newWidth < 180) newWidth = 180;
+        if (newWidth > 500) newWidth = 500;
+        sidebar.style.width = newWidth + 'px';
+    });
+    document.addEventListener('mouseup', () => { isResizing = false; resizer.classList.remove('resizing'); document.body.style.cursor = ''; });
+
+    // 核心修复：同步滚动逻辑（防止无限循环引发抖动）
+    const p1 = document.getElementById('p1'), p2 = document.getElementById('p2');
+    let isScrollingP1 = false, isScrollingP2 = false;
+    p1.onscroll = () => { if (!isScrollingP2) { isScrollingP1 = true; p2.scrollTop = p1.scrollTop; p2.scrollLeft = p1.scrollLeft; setTimeout(()=> isScrollingP1 = false, 50); } };
+    p2.onscroll = () => { if (!isScrollingP1) { isScrollingP2 = true; p1.scrollTop = p2.scrollTop; p1.scrollLeft = p2.scrollLeft; setTimeout(()=> isScrollingP2 = false, 50); } };
+
+    // 上传处理逻辑
     ['A', 'B'].forEach(key => {
         const zone = document.getElementById('zone'+key), input = document.getElementById('file'+key), sel = document.getElementById('sheet'+key);
         zone.onclick = () => input.click();
@@ -140,7 +208,7 @@
             if (ext.includes('xls')) {
                 const wb = XLSX.read(await file.arrayBuffer(), {type: 'array'});
                 obj.wb = wb;
-                wb.SheetNames.forEach(n => { const o = document.createElement('option'); o.value=n; o.innerText="工作表: "+n; sel.appendChild(o); });
+                wb.SheetNames.forEach(n => { const o = document.createElement('option'); o.value=n; o.innerText="Sheet: "+n; sel.appendChild(o); });
                 sel.style.display = 'block';
                 obj.val = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], {header: 1, defval: ""});
             } else if (ext === 'pdf') {
@@ -160,14 +228,19 @@
     }
 
     document.getElementById('runBtn').onclick = () => {
-        const v1 = document.getElementById('p1'), v2 = document.getElementById('p2'), list = document.getElementById('diffList');
-        if (!dataA.val || !dataB.val) return;
+        if (!dataA.val || !dataB.val) { alert("请先上传两份文件"); return; }
+        
+        const list = document.getElementById('diffList');
         list.innerHTML = ""; let diffItems = [];
+        p1.innerHTML = ""; p2.innerHTML = ""; // 清空旧内容
 
-        if (dataA.ext.includes('xls')) renderExcel(v1, v2, diffItems);
-        else renderText(v1, v2, diffItems);
+        if (dataA.ext.includes('xls')) renderExcel(p1, p2, diffItems);
+        else renderText(p1, p2, diffItems);
 
         document.getElementById('diffCount').innerText = `差异清单 (${diffItems.length})`;
+        if(diffItems.length === 0) list.innerHTML = '<p style="color:green; text-align:center; font-size:12px;">恭喜，未发现差异！</p>';
+
+        // 3. 核心修复：精准跳转逻辑
         diffItems.forEach((item, idx) => {
             const div = document.createElement('div');
             div.className = 'diff-item';
@@ -175,15 +248,19 @@
             div.onclick = () => {
                 const target = document.getElementById(item.id);
                 if(target) {
+                    // 使用 scrollIntoView 联动跳转，设置 center 保证视觉对齐
                     target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    // 添加临时高亮
+                    target.style.transition = "outline 0.3s";
                     target.style.outline = "4px solid orange";
                     setTimeout(() => target.style.outline = "", 1500);
                 }
             };
             list.appendChild(div);
         });
-        v1.onscroll = () => { v2.scrollTop = v1.scrollTop; v2.scrollLeft = v1.scrollLeft; };
-        v2.onscroll = () => { v1.scrollTop = v2.scrollTop; v1.scrollLeft = v2.scrollLeft; };
+        
+        // 自动展开侧边栏
+        toggleSidebar(false);
     };
 
     function renderExcel(v1, v2, diffItems) {
@@ -196,11 +273,13 @@
             for(let i=0; i<rows; i++) {
                 h += `<tr><th>${i+1}</th>`;
                 for(let j=0; j<cols; j++) {
-                    const val = curr[i]?.[j] || "", comp = other[i]?.[j] || "";
+                    const val = curr[i]?.[j] !== undefined ? curr[i][j] : "";
+                    const comp = other[i]?.[j] !== undefined ? other[i][j] : "";
                     const isDiff = String(val).trim() !== String(comp).trim();
-                    const id = `cell_${isMain?'A':'B'}_${i}_${j}`;
-                    if(isDiff && isMain) diffItems.push({id: id, txt: `行${i+1}列${String.fromCharCode(65+j)}: 数据不一致`});
-                    h += `<td id="${id}" class="${isDiff?'diff-cell':''}">${val}</td>`;
+                    // 核心修复：为有差异的单元格设置唯一的 ID
+                    const id = isDiff ? `cell_${isMain?'A':'B'}_${i}_${j}` : '';
+                    if(isDiff && isMain) diffItems.push({id: id, txt: `行${i+1}列${String.fromCharCode(65+j)} 数据不一致`});
+                    h += `<td ${id?`id="${id}"`:''} class="${isDiff?'diff-cell':''}">${val}</td>`;
                 }
                 h += '</tr>';
             }
@@ -215,14 +294,17 @@
         v1.innerHTML = '<div class="text-mode"></div>'; v2.innerHTML = '<div class="text-mode"></div>';
         const d1 = v1.firstChild, d2 = v2.firstChild;
         const formatPage = (t) => t.replace(/\[\[PAGE_(\d+)\]\]/g, '<div class="page-divider"><span class="page-badge">第 $1 页</span></div>');
+
         diffs.forEach((p, idx) => {
-            const id = `diff_txt_${idx}`, val = formatPage(p.value);
+            const id = `diff_txt_${idx}`;
+            const val = formatPage(p.value);
             if (p.added) {
-                diffItems.push({id: id, txt: `新增内容: ${p.value.substring(0,10)}...`});
+                // 核心修复：为有差异的文本行设置唯一 ID
+                diffItems.push({id: id, txt: `新增内容: ${p.value.substring(0,12)}...`});
                 d2.innerHTML += `<span id="${id}" class="txt-added">${val}</span>`;
                 d1.innerHTML += `<span style="color:transparent;user-select:none">${p.value}</span>`;
             } else if (p.removed) {
-                diffItems.push({id: id, txt: `删除内容: ${p.value.substring(0,10)}...`});
+                diffItems.push({id: id, txt: `删除内容: ${p.value.substring(0,12)}...`});
                 d1.innerHTML += `<span id="${id}" class="txt-removed">${val}</span>`;
                 d2.innerHTML += `<span style="color:transparent;user-select:none">${p.value}</span>`;
             } else { d1.innerHTML += val; d2.innerHTML += val; }
