@@ -15,66 +15,90 @@
             --diff-red: #fff0f0; 
             --diff-border: #d93025; 
             --text-main: #3c4043;
+            --text-second: #70757a;
         }
         body { font-family: 'Segoe UI', 'PingFang SC', sans-serif; background: var(--bg); margin: 0; padding: 15px; height: 100vh; display: flex; flex-direction: column; box-sizing: border-box; }
         
-        /* 1. 标题美化 */
-        .app-header { margin-bottom: 20px; text-align: center; }
+        /* 1. 标题与副标题更新 */
+        .app-header { margin-bottom: 22px; text-align: center; }
         .app-header h1 { 
-            font-size: 26px; 
+            font-size: 28px; 
             color: var(--primary); 
             margin: 0; 
             font-weight: 700; 
             letter-spacing: 1px;
-            text-shadow: 0 1px 2px rgba(0,0,0,0.05);
         }
-        .app-header p { font-size: 13px; color: #70757a; margin-top: 5px; }
+        .app-header p { font-size: 14px; color: var(--text-second); margin-top: 6px; font-weight: 500; }
 
         .top-nav { 
             display: grid; grid-template-columns: 1fr 140px 1fr; gap: 15px; 
             background: #fff; padding: 12px; border-radius: 12px; 
-            box-shadow: 0 2px 8px rgba(0,0,0,0.08); align-items: center; margin-bottom: 15px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.06); align-items: center; margin-bottom: 15px;
         }
         
-        .upload-section { display: flex; flex-direction: column; gap: 8px; }
+        .upload-section { display: flex; flex-direction: column; gap: 10px; }
+        
+        /* 2. 上传框视觉大幅强化 */
         .upload-zone { 
-            border: 2px dashed #dadce0; border-radius: 10px; height: 52px; 
+            border: 2px dashed #dadce0; border-radius: 12px; height: 55px; 
             display: flex; align-items: center; justify-content: center; 
-            cursor: pointer; background: #fff; transition: all 0.2s ease;
+            cursor: pointer; background: #fff; transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
         }
-        .upload-zone.drag-over { border-color: var(--primary); background: #f1f7fe; transform: translateY(-2px); }
-        .upload-zone span { font-size: 13px; color: #5f6368; }
+        /* 悬停反馈 */
+        .upload-zone:hover {
+            border-color: var(--primary);
+            box-shadow: 0 0 10px rgba(26,115,232,0.1);
+        }
+        /* 拖拽反馈 */
+        .upload-zone.drag-over { 
+            border-color: var(--primary); 
+            background: #f1f7fe; 
+            transform: translateY(-3px) scale(1.01);
+            box-shadow: 0 4px 15px rgba(26,115,232,0.2);
+            border-style: solid;
+        }
+        
+        /* 强化核心交互文字 */
+        .upload-zone span { 
+            font-size: 15px; 
+            color: var(--primary); /* 改为蓝色 */
+            font-weight: bold; /* 加粗 */
+            pointer-events: none; /* 防止干扰拖拽 */
+        }
         
         .sheet-selector { 
-            display: none; padding: 6px; border: 1px solid #dfe1e5; 
+            display: none; padding: 7px; border: 1px solid #dfe1e5; 
             border-radius: 6px; font-size: 12px; color: var(--primary); 
             font-weight: 600; outline: none; background: #fff; cursor: pointer;
+            transition: 0.2s;
         }
+        .sheet-selector:hover { border-color: var(--primary); }
 
         .btn-go { 
-            background: var(--primary); color: white; border: none; height: 44px; 
-            border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 15px;
-            box-shadow: 0 2px 4px rgba(26,115,232,0.3); transition: 0.2s;
+            background: var(--primary); color: white; border: none; height: 46px; 
+            border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 16px;
+            box-shadow: 0 2px 5px rgba(26,115,232,0.3); transition: 0.2s;
         }
-        .btn-go:hover { background: #1557b0; box-shadow: 0 4px 10px rgba(26,115,232,0.4); }
+        .btn-go:hover { background: #1557b0; box-shadow: 0 5px 12px rgba(26,115,232,0.4); transform: translateY(-1px); }
 
-        .main-view { display: grid; grid-template-columns: 1fr 1fr; gap: 2px; flex: 1; background: #dee2e6; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
+        .main-view { display: grid; grid-template-columns: 1fr 1fr; gap: 2px; flex: 1; background: #dee2e6; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.06); }
         .pane { background: #fff; overflow: auto; position: relative; }
         
         /* Excel 表格 */
         .excel-table { border-collapse: collapse; table-layout: fixed; width: max-content; }
         .excel-table thead th { position: sticky; top: 0; background: #f1f3f4; z-index: 10; border-bottom: 1px solid #ccc; padding: 10px; font-size: 12px; color: #5f6368; }
-        .excel-table tbody th { position: sticky; left: 0; background: #f1f3f4; z-index: 9; width: 45px; text-align: center; border-right: 1px solid #ccc; color: #9aa0a6; }
+        .excel-table tbody th { position: sticky; left: 0; background: #f1f3f4; z-index: 9; width: 48px; text-align: center; border-right: 1px solid #ccc; color: #9aa0a6; }
         .excel-table td { border: 1px solid #ebebeb; padding: 8px; height: 32px; font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .diff-cell { background: var(--diff-red) !important; color: var(--diff-border) !important; font-weight: 600; border: 1px solid var(--diff-border) !important; }
+        .diff-cell { background: var(--diff-red) !important; color: var(--diff-border) !important; font-weight: 600; border: 1.5px solid var(--diff-border) !important; }
 
-        /* 2. PDF 页码样式增强 */
-        .text-mode { padding: 40px; line-height: 2.4; font-size: 15px; white-space: pre-wrap; color: var(--text-main); }
+        /* PDF 页码样式增强 */
+        .text-mode { padding: 45px; line-height: 2.5; font-size: 15px; white-space: pre-wrap; color: var(--text-main); }
         .page-divider {
-            display: flex; align-items: center; margin: 30px 0 15px 0; color: var(--primary); font-weight: bold; font-size: 12px;
+            display: flex; align-items: center; margin: 35px 0 18px 0; color: var(--primary); font-weight: bold; font-size: 12px;
         }
         .page-divider::before, .page-divider::after { content: ""; flex: 1; height: 1px; background: #e8eaed; }
-        .page-badge { background: #e8f0fe; padding: 4px 12px; border-radius: 20px; border: 1px solid #c2e7ff; margin: 0 15px; }
+        .page-badge { background: #e8f0fe; padding: 5px 14px; border-radius: 20px; border: 1px solid #c2e7ff; margin: 0 15px; text-transform: uppercase; letter-spacing: 0.5px;}
 
         .txt-added { background: #e6ffec; color: #137333; border-bottom: 1px solid #34a853; }
         .txt-removed { background: #ffebe9; color: #d93025; text-decoration: line-through; }
@@ -84,14 +108,14 @@
 
 <div class="app-header">
     <h1>文档对比助手</h1>
-    <p>数据坐标比对与文本差异分析系统</p>
+    <p>支持 pdf / word / excel 文件</p>
 </div>
 
 <div class="top-nav">
     <div class="upload-section">
         <div class="upload-zone" id="zoneA">
             <input type="file" id="fileA" hidden accept=".pdf,.docx,.xlsx,.xls,.txt">
-            <span id="labelA">📄 点击或拖入原件</span>
+            <span id="labelA">📂 点击或拖入原件</span>
         </div>
         <select id="sheetA" class="sheet-selector"></select>
     </div>
@@ -101,7 +125,7 @@
     <div class="upload-section">
         <div class="upload-zone" id="zoneB">
             <input type="file" id="fileB" hidden accept=".pdf,.docx,.xlsx,.xls,.txt">
-            <span id="labelB">📄 点击或拖入修订件</span>
+            <span id="labelB">📂 点击或拖入修订件</span>
         </div>
         <select id="sheetB" class="sheet-selector"></select>
     </div>
@@ -113,6 +137,7 @@
 </div>
 
 <script>
+    // 核心解析逻辑保持不变
     pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.worker.min.js';
     let dataA = { ext: '', wb: null, val: null }, dataB = { ext: '', wb: null, val: null };
 
@@ -122,9 +147,12 @@
         const sel = document.getElementById('sheet' + key);
 
         zone.onclick = () => input.click();
+        
+        // 增强的拖拽动效
         zone.ondragover = (e) => { e.preventDefault(); zone.classList.add('drag-over'); };
         zone.ondragleave = () => zone.classList.remove('drag-over');
         zone.ondrop = (e) => { e.preventDefault(); zone.classList.remove('drag-over'); handleParse(e.dataTransfer.files[0], key); };
+        
         input.onchange = (e) => handleParse(e.target.files[0], key);
 
         sel.onchange = (e) => {
@@ -172,7 +200,7 @@
             } else {
                 obj.val = await file.text();
             }
-            label.innerHTML = `<span style="color:var(--primary);font-weight:bold">✅ ${file.name}</span>`;
+            label.innerHTML = `<span style="color:var(--primary);font-weight:bold;font-size:12px">✅ ${file.name}</span>`;
         } catch (e) { label.innerText = "❌ 解析失败"; }
     }
 
@@ -198,7 +226,7 @@
         const cols = Math.max(dataA.val[0]?.length || 0, dataB.val[0]?.length || 0);
         const build = (curr, other) => {
             let h = '<table class="excel-table"><thead><tr><th>#</th>';
-            for(let j=0; j<cols; j++) h += `<th style="width:150px">${String.fromCharCode(65+j)}</th>`;
+            for(let j=0; j<cols; j++) h += `<th style="width:160px">${String.fromCharCode(65+j)}</th>`;
             h += '</tr></thead><tbody>';
             for(let i=0; i<rows; i++) {
                 h += `<tr><th>${i+1}</th>`;
@@ -209,7 +237,7 @@
                 }
                 h += '</tr>';
             }
-            return h + '</tbody></table>';
+            return html + '</tbody></table>';
         };
         v1.innerHTML = build(dataA.val, dataB.val);
         v2.innerHTML = build(dataB.val, dataA.val);
